@@ -1,0 +1,32 @@
+# Compiled binaries
+*.exe
+*.out
+*.o
+*.obj
+*.lib
+*.exp
+
+# CUDA compiled files
+*.cubin
+*.ptx
+*.fatbin
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# Build directories
+build/
+out/
+bin/
+Debug/
+Release/
+x64/
+x86/
+
+# Temp files
+*.log
+*.tmp
+*.temp

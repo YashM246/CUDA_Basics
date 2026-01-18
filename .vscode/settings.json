@@ -1,0 +1,13 @@
+{
+  "terminal.integrated.profiles.windows": {
+    "Developer PowerShell": {
+      "source": "PowerShell",
+      "args": [
+        "-NoExit",
+        "-Command",
+        "& 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\Tools\\Launch-VsDevShell.ps1'; $env:PATH = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64;' + $env:PATH"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "Developer PowerShell"
+}
