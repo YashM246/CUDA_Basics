@@ -29,10 +29,13 @@ A learning repository for CUDA programming, starting from C/C++ fundamentals and
 
 ```
 CUDA_Programming/
-├── 01_test_cuda_installation.cu    # Verify CUDA setup
-├── 02_c_and_c++_review/            # C/C++ fundamentals review
-│   └── ...
-├── .vscode/                        # VS Code configuration
+├── 01_test_cuda_installation.cu       # Verify CUDA setup
+├── 02_c_and_c++_review/               # C/C++ fundamentals review
+│   └── 2.1_Pointers/
+│       ├── 01.c                       # Pointer basics (& and *)
+│       ├── 02.c                       # Multi-level pointers
+│       └── 03.c                       # Void pointers
+├── .vscode/                           # VS Code configuration
 │   └── settings.json
 └── README.md
 ```
@@ -42,10 +45,11 @@ CUDA_Programming/
 ### Part 1: C/C++ Review
 
 A quick review of C and C++ concepts essential for CUDA programming:
-- Pointers and memory management
-- Arrays and dynamic allocation
-- Structs and classes
-- Function pointers
+
+**2.1 Pointers**
+- `01.c` - Introduction: address-of (&) and dereference (*) operators
+- `02.c` - Multi-level pointers (int*, int**, int***)
+- `03.c` - Void pointers (generic pointers, type casting)
 
 ### Part 2: CUDA Programming
 
