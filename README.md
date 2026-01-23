@@ -64,3 +64,5 @@ Core CUDA concepts and parallel programming:
 ## Troubleshooting
 
 See the comments in `01_test_cuda_installation.cu` for common setup issues and fixes.
+
+Minor Change
