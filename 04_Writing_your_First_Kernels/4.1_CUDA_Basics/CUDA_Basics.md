@@ -137,6 +137,25 @@ Every thread knows its position through built-in variables:
 | `blockDim` | `dim3` | Dimensions of each block (threads per block) |
 | `gridDim` | `dim3` | Dimensions of the grid (blocks per grid) |
 
+### How Are These Values Assigned?
+
+These variables are **set automatically by the GPU hardware** based on your kernel launch:
+
+```cpp
+dim3 threadsPerBlock(16, 16);  // You specify this
+dim3 numBlocks(64, 64);        // You specify this
+kernel<<<numBlocks, threadsPerBlock>>>(...);
+```
+
+| Variable | Set By | Value |
+|----------|--------|-------|
+| `blockDim` | Your `threadsPerBlock` argument | Same for all threads |
+| `gridDim` | Your `numBlocks` argument | Same for all threads |
+| `blockIdx` | Hardware assigns | 0 to gridDim-1 (unique per block) |
+| `threadIdx` | Hardware assigns | 0 to blockDim-1 (unique within block) |
+
+The GPU automatically assigns unique `blockIdx` and `threadIdx` values to each thread when the kernel launches.
+
 ### Calculating Global Thread ID
 
 For 1D arrays, the most common formula:
@@ -181,13 +200,27 @@ kernel<<<gridSize, blockSize, sharedMem, stream>>>(arguments);
 
 ### Using `dim3`
 
-`dim3` specifies 3D dimensions (defaults to 1 for unspecified dimensions):
+`dim3` specifies 3D dimensions with **default values of 1** for unspecified dimensions:
 
 ```cpp
-dim3 blockSize(16, 16, 1);  // 16×16×1 = 256 threads per block
-dim3 gridSize(8, 8, 1);     // 8×8×1 = 64 blocks
+dim3(x)        // Equivalent to dim3(x, 1, 1)
+dim3(x, y)     // Equivalent to dim3(x, y, 1)
+dim3(x, y, z)  // All three specified
+```
 
+Examples:
+```cpp
+dim3 blockSize(256);        // 1D: (256, 1, 1) = 256 threads
+dim3 blockSize(16, 16);     // 2D: (16, 16, 1) = 256 threads
+dim3 blockSize(8, 8, 4);    // 3D: (8, 8, 4)   = 256 threads
+
+dim3 gridSize(8, 8);        // 8×8×1 = 64 blocks
 myKernel<<<gridSize, blockSize>>>(data);
+```
+
+You can also use plain integers for 1D configurations:
+```cpp
+myKernel<<<numBlocks, 256>>>(data);  // 256 threads per block (1D)
 ```
 
 ### Calculating Grid Size
@@ -203,9 +236,72 @@ myKernel<<<gridSize, blockSize>>>(data, N);
 
 The `+ blockSize - 1` ensures we have enough threads even if N isn't divisible by blockSize.
 
+### Choosing Block Size
+
+How do you decide how many threads per block to use?
+
+| Consideration | Guidance |
+|---------------|----------|
+| **Minimum** | At least 128-256 threads (for hiding memory latency) |
+| **Maximum** | 1024 threads per block (hardware limit) |
+| **Warp alignment** | Should be a multiple of 32 (warp size) |
+| **Register pressure** | Complex kernels may need smaller blocks |
+| **Shared memory** | Block size affects shared memory usage |
+
+**Common choices:**
+- 1D problems: 256 or 512 threads
+- 2D problems: 16×16 (256) or 32×32 (1024)
+
+**Rule of thumb:** Start with 256 threads, profile your kernel, then adjust if needed.
+
+```cpp
+// CUDA can help you find optimal block size:
+int minGridSize, optimalBlockSize;
+cudaOccupancyMaxPotentialBlockSize(&minGridSize, &optimalBlockSize, myKernel, 0, 0);
+```
+
 ---
 
 ## Memory Management
+
+### Calculating Memory Size
+
+Memory functions need size in **bytes**, not element count. Use this formula:
+
+```cpp
+size_t size = numberOfElements * sizeof(dataType);
+```
+
+Examples:
+```cpp
+// 1D array: n elements
+size_t size = n * sizeof(float);                  // n floats
+
+// 2D matrix: rows × cols
+size_t size = rows * cols * sizeof(float);        // rows×cols floats
+
+// 3D volume: x × y × z
+size_t size = x * y * z * sizeof(double);         // x×y×z doubles
+```
+
+**Why `size_t` instead of `int`?**
+
+`size_t` is an unsigned integer type guaranteed to hold any valid memory size:
+
+| Type | Typical size | Max value |
+|------|--------------|-----------|
+| `int` | 4 bytes | ~2 billion |
+| `size_t` | 8 bytes (64-bit) | ~18 quintillion |
+
+```cpp
+// Problem: int overflow for large allocations!
+int size = 50000 * 50000 * sizeof(float);    // Overflow! (10 billion > 2 billion)
+
+// Solution: use size_t
+size_t size = 50000ULL * 50000 * sizeof(float);  // Works correctly
+```
+
+Use `size_t` for any variable that stores memory sizes or array lengths.
 
 ### cudaMalloc
 Allocates memory on the GPU:
@@ -246,6 +342,44 @@ cudaDeviceSynchronize();  // Wait for kernel to finish
 ```
 
 By default, kernel launches are asynchronous - CPU continues immediately. Use `cudaDeviceSynchronize()` when you need results before continuing.
+
+### Memory Allocation Patterns
+
+**Do you need to allocate host memory every time?** No, it depends on your use case:
+
+**Pattern 1: One-time computation**
+```cpp
+float *h_data = (float*)malloc(size);
+// ... use once ...
+free(h_data);
+```
+
+**Pattern 2: Repeated computations (reuse memory)**
+```cpp
+// Allocate ONCE before the loop
+float *h_input = (float*)malloc(size);
+float *h_output = (float*)malloc(size);
+
+for(int i = 0; i < 100; i++){
+    // Just update data, don't reallocate
+    fillWithNewData(h_input);
+    processOnGPU(h_input, h_output);
+}
+
+// Free ONCE after all iterations
+free(h_input);
+free(h_output);
+```
+
+**Pattern 3: Data already exists**
+```cpp
+void processExistingData(float *existingArray, int n){
+    // No allocation needed - use the pointer directly
+    cudaMemcpy(d_data, existingArray, n * sizeof(float), cudaMemcpyHostToDevice);
+}
+```
+
+The same patterns apply to device memory - allocate once and reuse when possible for better performance.
 
 ---
 
@@ -429,3 +563,6 @@ kernel<<<grid, block>>>(args);
 4. **Always bounds check** - You often launch more threads than needed
 5. **Memory matters** - Use shared memory for speed, global for capacity
 6. **Blocks are independent** - They can execute in any order
+7. **Use `size_t` for sizes** - Prevents overflow with large allocations
+8. **Block size should be a multiple of 32** - Aligns with warp size for efficiency
+9. **Reuse memory when possible** - Allocate once, use many times
