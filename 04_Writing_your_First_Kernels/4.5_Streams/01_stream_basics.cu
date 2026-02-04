@@ -94,6 +94,47 @@
  */
 #define CHECK_CUDA_ERROR(val) check((val), #val, __FILE__, __LINE__)
 
+/*
+ * ===========================================
+ * What is "template <typename T>"?
+ * ===========================================
+ *
+ * Templates are a C++ feature that lets you write ONE function that works
+ * with MULTIPLE types. The compiler generates the appropriate version
+ * for each type you use.
+ *
+ * Without templates, you'd need to write multiple functions:
+ *
+ *   void checkInt(int err, ...) { ... }
+ *   void checkFloat(float err, ...) { ... }
+ *   void checkCudaError(cudaError_t err, ...) { ... }
+ *
+ * With templates, you write ONE function:
+ *
+ *   template <typename T>
+ *   void check(T err, ...) { ... }
+ *
+ * How it works:
+ *   - "template <typename T>" tells the compiler: "T is a placeholder for any type"
+ *   - When you call check(cudaMalloc(...)), the compiler sees cudaMalloc returns cudaError_t
+ *   - The compiler automatically generates: void check(cudaError_t err, ...)
+ *
+ * In this case:
+ *   - cudaMalloc returns cudaError_t
+ *   - cudaMemcpy returns cudaError_t
+ *   - cudaStreamCreate returns cudaError_t
+ *   - All CUDA API calls return cudaError_t, so T becomes cudaError_t
+ *
+ * Why use templates here?
+ *   - Future-proofing: If CUDA ever changes return types, code still works
+ *   - Flexibility: Same pattern works for other error types
+ *   - It's a common C++ idiom for error checking utilities
+ *
+ * Simple analogy:
+ *   Template is like a cookie cutter shape.
+ *   T is like the dough color.
+ *   You get the same shape cookie regardless of dough color.
+ */
 template <typename T>
 void check(T err, const char *const func, const char *const file, const int line) {
     if (err != cudaSuccess) {
@@ -115,13 +156,7 @@ void check(T err, const char *const func, const char *const file, const int line
  * to run concurrently with memory transfers in other streams.
  */
 __global__ void vectorAdd(float *A, float *B, float *C, int numElements) {
-    /*
-     * Calculate global thread index
-     *
-     * NOTE: Using threadIdx.x (not threadIdx.z!)
-     * For 1D blocks, threadIdx.x gives the thread's position.
-     * threadIdx.z would always be 0 for 1D configurations.
-     */
+    // Calculate global thread index
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
 
     // Bounds check: only process valid elements
@@ -189,6 +224,73 @@ int main() {
      * ===========================================
      * Device Memory Allocation
      * ===========================================
+     *
+     * cudaMalloc signature:
+     *   cudaError_t cudaMalloc(void **devPtr, size_t size);
+     *
+     * ===========================================
+     * Why (void **) - The Double Pointer Explained
+     * ===========================================
+     *
+     * This is confusing at first, but makes sense once you understand
+     * how functions can "return" values through pointers.
+     *
+     * The Problem:
+     * ------------
+     * cudaMalloc needs to tell us WHERE it allocated memory (the address).
+     * But its return value is already used for the error code (cudaError_t).
+     * So how does it give us the allocated address?
+     *
+     * The Solution: Pass a pointer TO our pointer
+     * --------------------------------------------
+     *
+     * Let's trace through what happens:
+     *
+     *   float *d_A;                    // d_A is a pointer (holds an address)
+     *                                  // Currently d_A = garbage/undefined
+     *
+     *   &d_A                           // "Address of d_A" - where d_A itself lives in memory
+     *                                  // This is a pointer TO a pointer: float**
+     *
+     *   (void **)&d_A                  // Cast to void** (generic double pointer)
+     *                                  // void* means "pointer to anything"
+     *
+     *   cudaMalloc((void **)&d_A, size)
+     *                                  // cudaMalloc receives the ADDRESS of d_A
+     *                                  // It allocates GPU memory at address 0xABC123 (example)
+     *                                  // It WRITES 0xABC123 into d_A
+     *                                  // Now d_A = 0xABC123 (points to GPU memory!)
+     *
+     * Visual representation:
+     *
+     *   BEFORE cudaMalloc:
+     *   ┌─────────────────┐
+     *   │ d_A = ???       │  ← Our pointer variable (undefined)
+     *   │ (at addr 0x100) │
+     *   └─────────────────┘
+     *
+     *   We pass &d_A (0x100) to cudaMalloc
+     *
+     *   AFTER cudaMalloc:
+     *   ┌─────────────────┐         ┌─────────────────────────┐
+     *   │ d_A = 0xGPU456  │ ──────→ │ GPU Memory (size bytes) │
+     *   │ (at addr 0x100) │         │ at address 0xGPU456     │
+     *   └─────────────────┘         └─────────────────────────┘
+     *
+     * Why void**?
+     * -----------
+     * - void* is a "generic pointer" that can point to any type
+     * - cudaMalloc is designed to work with ANY type (int*, float*, struct*, etc.)
+     * - void** means "pointer to a generic pointer"
+     * - We cast our float** to void** so cudaMalloc accepts it
+     *
+     * Compare with malloc (which RETURNS the address):
+     * ------------------------------------------------
+     *   float *h_A = (float *)malloc(size);   // malloc returns the address
+     *   cudaMalloc((void **)&d_A, size);      // cudaMalloc writes to our pointer
+     *
+     * Why doesn't cudaMalloc just return the address like malloc?
+     * Because CUDA functions return cudaError_t for error checking.
      */
     float *d_A, *d_B, *d_C;
 
@@ -399,24 +501,6 @@ int main() {
  *
  * Cleaning up...
  * Done!
- *
- * ===========================================
- * Bugs Fixed from Original Code
- * ===========================================
- *
- * 1. threadIdx.z → threadIdx.x
- *    Original used threadIdx.z which is always 0 for 1D blocks!
- *
- * 2. Type mismatch: int* → float*
- *    Kernel used int* but main used float*.
- *
- * 3. Wrong memcpy direction (line 64)
- *    Original: cudaMemcpyAsync(d_C, h_C, ...) ← WRONG (source/dest swapped)
- *    Fixed:    cudaMemcpyAsync(h_C, d_C, ...) ← CORRECT
- *
- * 4. Pageable memory → Pinned memory
- *    Changed malloc() to cudaMallocHost() for true async behavior.
- *    Changed free() to cudaFreeHost() accordingly.
  *
  * ===========================================
  * Key Takeaways
