@@ -1,5 +1,16 @@
 # cuBLAS Library Variants Comparison
 
+## Examples in This Folder
+
+| File | Description |
+|------|-------------|
+| `01_sgemm_hgemm_cublas.cu` | cuBLAS basics: SGEMM (FP32) vs HGEMM (FP16), row-major swap trick |
+| `02_matmul_cublaslt.cu` | cuBLASLt descriptor-based API: FP32 vs FP16 matmul |
+| `03_compare_cublas_cublaslt.cu` | Benchmark: cuBLAS vs cuBLASLt vs naive kernel (GFLOPS comparison) |
+| `04_matmul_cublasxt.cu` | cuBLASXt: host-pointer matmul with multi-GPU support |
+| `05_compare_cublas_cublasxt.cu` | Benchmark: cuBLAS vs cuBLASXt on large 16384x16384 matrices |
+
+
 > Note: Before benchmarking, always do warmup runs first. Without warmup,
 > cuBLAS has significant first-run overhead (~45ms) from library initialization,
 > JIT compilation, and GPU context setup. Benchmark runs should be averaged
@@ -57,13 +68,14 @@ Key features:
 - Automatic work partitioning: Splits matrices across devices
 
 The catch - it's SLOWER for single-GPU workloads because:
-- Data must transfer between motherboard DRAM and GPU VRAM
+- Data must transfer between motherboard DRAM and GPU VRAM every call
 - Memory bandwidth bottleneck between CPU and GPU (PCIe)
 - Synchronization overhead between devices
 
-Benchmark example:
+Benchmark example (see `05_compare_cublas_cublasxt.cu`):
   (M, N) @ (N, K) where M = N = K = 16384
-  cuBLAS (single GPU) is significantly faster than cuBLAS-Xt on one GPU
+  cuBLAS (single GPU, compute only) is significantly faster than cuBLAS-Xt
+  cuBLAS-Xt timing includes: host→device copy + compute + device→host copy
   cuBLAS-Xt only wins when the problem is too large for one GPU's memory
 
 When to use cuBLAS-Xt:
