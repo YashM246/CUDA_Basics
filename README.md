@@ -49,9 +49,25 @@ CUDA_Programming/
 │   │   ├── 01_vector_add_v1.cu         # CPU vs GPU vector addition benchmark
 │   │   ├── 02_vector_add_v2.cu         # 1D vs 3D grid comparison
 │   │   └── 03_matmul.cu                # Naive matrix multiplication
-│   └── 4.3_Profiling/
-│       ├── 01_nvtx_matmul.cu           # NVTX profiling annotations demo
-│       └── 02_tiled_matmul.cu          # Optimized tiled matrix multiplication
+│   ├── 4.3_Profiling/
+│   │   ├── 01_nvtx_matmul.cu           # NVTX profiling annotations demo
+│   │   └── 02_tiled_matmul.cu          # Optimized tiled matrix multiplication
+│   ├── 4.4_Atomics/
+│   │   ├── Atomic_Operations.md        # Atomic operations guide
+│   │   └── 01_atomic_add.cu            # atomicAdd demonstration
+│   └── 4.5_Streams/
+│       ├── CUDA_Streams.md             # Streams and async execution guide
+│       ├── 01_stream_basics.cu         # Basic stream creation and usage
+│       └── 02_stream_advanced.cu       # Priorities, events, callbacks
+├── 05_CUDA_API/                        # NVIDIA optimized libraries
+│   ├── README.md                       # cuBLAS & cuDNN overview
+│   └── cuBLAS/
+│       ├── Comparison.md               # cuBLAS variants comparison guide
+│       ├── 01_sgemm_hgemm_cublas.cu    # cuBLAS SGEMM (FP32) vs HGEMM (FP16)
+│       ├── 02_matmul_cublaslt.cu       # cuBLASLt descriptor-based FP32/FP16
+│       ├── 03_compare_cublas_cublaslt.cu # Benchmark: cuBLAS vs cuBLASLt vs naive
+│       ├── 04_matmul_cublasxt.cu       # cuBLASXt host-pointer multi-GPU matmul
+│       └── 05_compare_cublas_cublasxt.cu # Benchmark: cuBLAS vs cuBLASXt
 └── README.md
 ```
 
@@ -104,6 +120,27 @@ A quick review of C and C++ concepts essential for CUDA programming:
   - Demonstrates 5-10x speedup over naive implementation
   - Extensive comments explaining the tiling algorithm
 
+#### 4.4 Atomics
+- **Atomic_Operations.md** - Guide to atomic operations (race conditions, atomicAdd, etc.)
+- **01_atomic_add.cu** - Demonstration of atomicAdd for safe concurrent updates
+
+#### 4.5 Streams
+- **CUDA_Streams.md** - Guide to asynchronous execution with CUDA streams
+- **01_stream_basics.cu** - Basic stream creation, async memcpy, multi-stream execution
+- **02_stream_advanced.cu** - Stream priorities, events for cross-stream sync, callbacks (CUDART_CB)
+
+### Part 5: CUDA APIs (Optimized Libraries)
+
+Pre-built, highly optimized libraries from NVIDIA. You call functions instead of writing kernels from scratch.
+
+#### cuBLAS (CUDA Basic Linear Algebra Subroutines)
+- **Comparison.md** - Detailed comparison of all cuBLAS variants
+- **01_sgemm_hgemm_cublas.cu** - cuBLAS basics: SGEMM (FP32) vs HGEMM (FP16), row-major swap trick
+- **02_matmul_cublaslt.cu** - cuBLASLt descriptor-based API with FP32 and FP16 matmul
+- **03_compare_cublas_cublaslt.cu** - Benchmark: cuBLAS vs cuBLASLt vs naive kernel with GFLOPS
+- **04_matmul_cublasxt.cu** - cuBLASXt: host-pointer matmul with automatic GPU memory management
+- **05_compare_cublas_cublasxt.cu** - Benchmark: cuBLAS vs cuBLASXt on 16384x16384 matrices
+
 ## Compiling CUDA Programs
 
 ```powershell
@@ -127,6 +164,12 @@ nsys profile .\program.exe
 | Naive MatMul | Understanding memory-bound kernels | `03_matmul.cu` |
 | NVTX Profiling | Annotate code for profilers | `01_nvtx_matmul.cu` |
 | Shared Memory | Tiled algorithms for optimization | `02_tiled_matmul.cu` |
+| Atomic Operations | Safe concurrent memory updates | `01_atomic_add.cu` |
+| CUDA Streams | Async execution, events, callbacks | `01_stream_basics.cu` |
+| cuBLAS GEMM | GPU matrix multiply (FP32/FP16) | `01_sgemm_hgemm_cublas.cu` |
+| cuBLASLt | Descriptor-based matmul API | `02_matmul_cublaslt.cu` |
+| cuBLASXt | Multi-GPU host-pointer matmul | `04_matmul_cublasxt.cu` |
+| GPU Benchmarking | CUDA events, warmup, GFLOPS | `03_compare_cublas_cublaslt.cu` |
 
 ## Performance Results (RTX 4070)
 
