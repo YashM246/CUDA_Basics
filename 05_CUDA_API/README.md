@@ -322,8 +322,13 @@ NVIDIA's docs are extensive but can be hard to navigate. Tips:
 
 ## Folder Contents
 
-| File | Description |
-|------|-------------|
+| Folder/File | Description |
+|-------------|-------------|
 | `README.md` | This guide |
-
-> Programs will be added as we work through cuBLAS and cuDNN examples.
+| `cuBLAS/` | cuBLAS examples and comparison document |
+| `cuBLAS/Comparison.md` | Detailed comparison of cuBLAS variants (cuBLAS, cuBLASLt, cuBLASXt, cuBLASDx, CUTLASS) |
+| `cuBLAS/01_sgemm_hgemm_cublas.cu` | cuBLAS basics: SGEMM (FP32) vs HGEMM (FP16), row-major swap trick |
+| `cuBLAS/02_matmul_cublaslt.cu` | cuBLASLt descriptor-based API: FP32 vs FP16 matmul |
+| `cuBLAS/03_compare_cublas_cublaslt.cu` | Benchmark: cuBLAS vs cuBLASLt vs naive kernel (GFLOPS comparison) |
+| `cuBLAS/04_matmul_cublasxt.cu` | cuBLASXt: host-pointer matmul with multi-GPU support |
+| `cuBLAS/05_compare_cublas_cublasxt.cu` | Benchmark: cuBLAS vs cuBLASXt on large 16384x16384 matrices |
