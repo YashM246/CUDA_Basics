@@ -332,3 +332,5 @@ NVIDIA's docs are extensive but can be hard to navigate. Tips:
 | `cuBLAS/03_compare_cublas_cublaslt.cu` | Benchmark: cuBLAS vs cuBLASLt vs naive kernel (GFLOPS comparison) |
 | `cuBLAS/04_matmul_cublasxt.cu` | cuBLASXt: host-pointer matmul with multi-GPU support |
 | `cuBLAS/05_compare_cublas_cublasxt.cu` | Benchmark: cuBLAS vs cuBLASXt on large 16384x16384 matrices |
+| `cuDNN/` | cuDNN overview and examples |
+| `cuDNN/README.md` | cuDNN guide: descriptors, convolution workflow, Graph API, kernel fusion, engine types |
