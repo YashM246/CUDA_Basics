@@ -61,13 +61,17 @@ CUDA_Programming/
 │       └── 02_stream_advanced.cu       # Priorities, events, callbacks
 ├── 05_CUDA_API/                        # NVIDIA optimized libraries
 │   ├── README.md                       # cuBLAS & cuDNN overview
-│   └── cuBLAS/
-│       ├── Comparison.md               # cuBLAS variants comparison guide
-│       ├── 01_sgemm_hgemm_cublas.cu    # cuBLAS SGEMM (FP32) vs HGEMM (FP16)
-│       ├── 02_matmul_cublaslt.cu       # cuBLASLt descriptor-based FP32/FP16
-│       ├── 03_compare_cublas_cublaslt.cu # Benchmark: cuBLAS vs cuBLASLt vs naive
-│       ├── 04_matmul_cublasxt.cu       # cuBLASXt host-pointer multi-GPU matmul
-│       └── 05_compare_cublas_cublasxt.cu # Benchmark: cuBLAS vs cuBLASXt
+│   ├── cuBLAS/
+│   │   ├── Comparison.md               # cuBLAS variants comparison guide
+│   │   ├── 01_sgemm_hgemm_cublas.cu    # cuBLAS SGEMM (FP32) vs HGEMM (FP16)
+│   │   ├── 02_matmul_cublaslt.cu       # cuBLASLt descriptor-based FP32/FP16
+│   │   ├── 03_compare_cublas_cublaslt.cu # Benchmark: cuBLAS vs cuBLASLt vs naive
+│   │   ├── 04_matmul_cublasxt.cu       # cuBLASXt host-pointer multi-GPU matmul
+│   │   └── 05_compare_cublas_cublasxt.cu # Benchmark: cuBLAS vs cuBLASXt
+│   └── cuDNN/
+│       ├── README.md                   # cuDNN guide: descriptors, Graph API, fusion
+│       ├── 01_tanh.cu                  # cuDNN activation (tanh) vs naive kernel
+│       └── 02_compare_tanh.py          # PyTorch tanh (cuDNN) vs custom formula
 └── README.md
 ```
 
@@ -141,6 +145,10 @@ Pre-built, highly optimized libraries from NVIDIA. You call functions instead of
 - **04_matmul_cublasxt.cu** - cuBLASXt: host-pointer matmul with automatic GPU memory management
 - **05_compare_cublas_cublasxt.cu** - Benchmark: cuBLAS vs cuBLASXt on 16384x16384 matrices
 
+#### cuDNN (CUDA Deep Neural Network Library)
+- **01_tanh.cu** - cuDNN `cudnnActivationForward` vs naive CUDA kernel for tanh, with bandwidth comparison
+- **02_compare_tanh.py** - PyTorch built-in tanh (cuDNN under the hood) vs custom exp-based formula
+
 ## Compiling CUDA Programs
 
 ```powershell
@@ -170,6 +178,8 @@ nsys profile .\program.exe
 | cuBLASLt | Descriptor-based matmul API | `02_matmul_cublaslt.cu` |
 | cuBLASXt | Multi-GPU host-pointer matmul | `04_matmul_cublasxt.cu` |
 | GPU Benchmarking | CUDA events, warmup, GFLOPS | `03_compare_cublas_cublaslt.cu` |
+| cuDNN Activation | Descriptor-based API, cudnnActivationForward | `01_tanh.cu` |
+| PyTorch + cuDNN | How torch.tanh dispatches to cuDNN | `02_compare_tanh.py` |
 
 ## Performance Results (RTX 4070)
 
