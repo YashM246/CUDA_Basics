@@ -319,3 +319,15 @@ https://docs.nvidia.com/deeplearning/cudnn/latest/api/cudnn-ops-library.html
 ```bash
 nvcc program.cu -o program.exe -lcudnn
 ```
+
+---
+
+## Folder Contents
+
+| File | Description |
+|------|-------------|
+| `README.md` | This guide |
+| `01_tanh.cu` | cuDNN activation (tanh) vs naive CUDA kernel benchmark |
+| `02_compare_tanh.py` | PyTorch built-in tanh (cuDNN) vs custom tanh formula |
+| `knlfusion1.png` | Runtime fusion patterns diagram (g1/g2 structure) |
+| `knlfusion2.png` | Compute capability support table for fusion patterns |
