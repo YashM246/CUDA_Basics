@@ -336,3 +336,4 @@ NVIDIA's docs are extensive but can be hard to navigate. Tips:
 | `cuDNN/README.md` | cuDNN guide: descriptors, convolution workflow, Graph API, kernel fusion, engine types |
 | `cuDNN/01_tanh.cu` | cuDNN activation (tanh) vs naive CUDA kernel benchmark |
 | `cuDNN/02_compare_tanh.py` | PyTorch built-in tanh (cuDNN) vs custom tanh formula |
+| `cuDNN/03_conv2d_nchw.cu` | cuDNN convolution forward vs naive kernel (small 4x4, verifiable by hand) |

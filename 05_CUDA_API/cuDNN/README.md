@@ -329,5 +329,6 @@ nvcc program.cu -o program.exe -lcudnn
 | `README.md` | This guide |
 | `01_tanh.cu` | cuDNN activation (tanh) vs naive CUDA kernel benchmark |
 | `02_compare_tanh.py` | PyTorch built-in tanh (cuDNN) vs custom tanh formula |
+| `03_conv2d_nchw.cu` | cuDNN convolution forward vs naive kernel (small 4x4, verifiable by hand) |
 | `knlfusion1.png` | Runtime fusion patterns diagram (g1/g2 structure) |
 | `knlfusion2.png` | Compute capability support table for fusion patterns |

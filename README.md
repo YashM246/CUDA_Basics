@@ -71,7 +71,8 @@ CUDA_Programming/
 │   └── cuDNN/
 │       ├── README.md                   # cuDNN guide: descriptors, Graph API, fusion
 │       ├── 01_tanh.cu                  # cuDNN activation (tanh) vs naive kernel
-│       └── 02_compare_tanh.py          # PyTorch tanh (cuDNN) vs custom formula
+│       ├── 02_compare_tanh.py          # PyTorch tanh (cuDNN) vs custom formula
+│       └── 03_conv2d_nchw.cu           # cuDNN convolution forward vs naive kernel
 └── README.md
 ```
 
@@ -148,6 +149,7 @@ Pre-built, highly optimized libraries from NVIDIA. You call functions instead of
 #### cuDNN (CUDA Deep Neural Network Library)
 - **01_tanh.cu** - cuDNN `cudnnActivationForward` vs naive CUDA kernel for tanh, with bandwidth comparison
 - **02_compare_tanh.py** - PyTorch built-in tanh (cuDNN under the hood) vs custom exp-based formula
+- **03_conv2d_nchw.cu** - cuDNN `cudnnConvolutionForward` vs naive kernel with algorithm selection and workspace
 
 ## Compiling CUDA Programs
 
@@ -180,6 +182,7 @@ nsys profile .\program.exe
 | GPU Benchmarking | CUDA events, warmup, GFLOPS | `03_compare_cublas_cublaslt.cu` |
 | cuDNN Activation | Descriptor-based API, cudnnActivationForward | `01_tanh.cu` |
 | PyTorch + cuDNN | How torch.tanh dispatches to cuDNN | `02_compare_tanh.py` |
+| cuDNN Convolution | Filter/conv descriptors, algorithm selection, workspace | `03_conv2d_nchw.cu` |
 
 ## Performance Results (RTX 4070)
 
