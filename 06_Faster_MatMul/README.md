@@ -197,6 +197,5 @@ cuTLASS is a template library for writing fused GEMM kernels. It uses:
 | File | Description |
 |------|-------------|
 | `README.md` | This guide |
+| `unrolling_example.cu` | Benchmark comparing explicit `#pragma unroll` vs compiler auto-unrolling |
 | `comparison.png` | Performance comparison chart across optimization levels |
-
-**Note:** This folder currently contains reference material. For actual kernel implementations, see the linked repositories above.

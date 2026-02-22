@@ -73,6 +73,9 @@ CUDA_Programming/
 │       ├── 01_tanh.cu                  # cuDNN activation (tanh) vs naive kernel
 │       ├── 02_compare_tanh.py          # PyTorch tanh (cuDNN) vs custom formula
 │       └── 03_conv2d_nchw.cu           # cuDNN convolution forward vs naive kernel
+├── 06_Faster_MatMul/                   # Advanced matmul optimizations
+│   ├── README.md                       # Optimization techniques guide
+│   └── unrolling_example.cu            # Loop unrolling benchmark
 └── README.md
 ```
 
@@ -151,6 +154,20 @@ Pre-built, highly optimized libraries from NVIDIA. You call functions instead of
 - **02_compare_tanh.py** - PyTorch built-in tanh (cuDNN under the hood) vs custom exp-based formula
 - **03_conv2d_nchw.cu** - cuDNN `cudnnConvolutionForward` vs naive kernel with algorithm selection and workspace
 
+### Part 6: Advanced Matrix Multiplication Optimizations
+
+Reference guide covering progressive matmul optimizations from naive to cuBLAS-level performance:
+- Coalesced memory access (128-byte cache line utilization)
+- Shared memory tiling (reduce global memory bandwidth)
+- 1D/2D block tiling (partition work across SMs)
+- Vectorized memory access (load 128 bits per instruction)
+- Autotuning (grid search for optimal parameters)
+
+#### Files
+- **unrolling_example.cu** - Benchmark comparing `#pragma unroll` vs compiler auto-unrolling with PTX inspection guide
+
+See `06_Faster_MatMul/README.md` for detailed explanations and links to complete implementations.
+
 ## Compiling CUDA Programs
 
 ```powershell
@@ -183,6 +200,7 @@ nsys profile .\program.exe
 | cuDNN Activation | Descriptor-based API, cudnnActivationForward | `01_tanh.cu` |
 | PyTorch + cuDNN | How torch.tanh dispatches to cuDNN | `02_compare_tanh.py` |
 | cuDNN Convolution | Filter/conv descriptors, algorithm selection, workspace | `03_conv2d_nchw.cu` |
+| Loop Unrolling | #pragma unroll directive, PTX inspection, ILP | `unrolling_example.cu` |
 
 ## Performance Results (RTX 4070)
 
